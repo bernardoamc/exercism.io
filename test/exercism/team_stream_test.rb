@@ -24,20 +24,14 @@ class TeamStreamTest < Minitest::Test
       TeamMembership.create!(team_id: team.id, user_id: user.id, confirmed: true)
     end
 
-    # Don't show stuff from unconfirmed members.
-    charlie = User.create!(username: 'charlie', avatar_url: 'charlie.jpg')
-    TeamMembership.create!(team_id: team.id, user_id: charlie.id, confirmed: false)
-
     ex1 = create_exercise(alice, 'go', 'clock', alice.id)
     ex2 = create_exercise(bob, 'go', 'clock', alice.id)
     ex3 = create_exercise(bob, 'go', 'anagram')
     ex4 = create_exercise(bob, 'elixir', 'triangle')
-    ex5 = create_exercise(charlie, 'go', 'clock')
 
     # no filters
     stream = TeamStream.new(team, alice.id)
     assert_equal 4, stream.exercises.size
-    refute stream.exercises.map(&:id).include?(ex5.id)
     assert_equal "The Team", stream.title
     assert_equal [ex3, ex4].map(&:id).sort, stream.exercises.select(&:unread?).map(&:id).sort
 
@@ -70,9 +64,9 @@ class TeamStreamTest < Minitest::Test
     # Test comment counts.
     s1 = Submission.create!(user_id: bob.id, user_exercise_id: ex2.id, language: ex2.language, slug: ex2.slug)
     s2 = Submission.create!(user_id: bob.id, user_exercise_id: ex2.id, language: ex2.language, slug: ex2.slug)
-    Comment.create!(submission_id: s1.id, user_id: [alice.id, bob.id, charlie.id].sample, body: "OHAI")
-    Comment.create!(submission_id: s1.id, user_id: [alice.id, bob.id, charlie.id].sample, body: "OHAI")
-    Comment.create!(submission_id: s2.id, user_id: [alice.id, bob.id, charlie.id].sample, body: "OHAI")
+    Comment.create!(submission_id: s1.id, user_id: [alice.id, bob.id].sample, body: "OHAI")
+    Comment.create!(submission_id: s1.id, user_id: [alice.id, bob.id].sample, body: "OHAI")
+    Comment.create!(submission_id: s2.id, user_id: [alice.id, bob.id].sample, body: "OHAI")
 
     stream = TeamStream.new(team, alice.id)
     exercise = stream.exercises.find { |ex| ex.id == ex2.id }
