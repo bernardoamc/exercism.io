@@ -122,7 +122,7 @@
     <br/>
 
     <div class="row">
-      <% team.confirmed_members.each do |member| %>
+      <% team.members.each do |member| %>
         <div class="col-sm-3">
           <a href="#" data-username="<%= member.username %>" data-team="<%= team.slug %>"
           class="btn btn-xs btn-danger member_delete" style="margin: 10px 10px 10px 0">X</a>
@@ -133,8 +133,8 @@
     </div>
 
     <div class="row">
-      <h4>Unconfirmed members</h4>
-      <% team.unconfirmed_members.each do |member| %>
+      <h4>Invited members</h4>
+      <% team.member_invites.each do |member| %>
         <div class="col-sm-3">
           <a href="#" data-username="<%= member.username %>" data-team="<%= team.slug %>"
           class="btn btn-xs btn-danger member_delete" style="margin: 10px 10px 10px 0">X</a>
@@ -143,6 +143,5 @@
         </div>
       <% end %>
     </div>
-
   </div>
 </div>
