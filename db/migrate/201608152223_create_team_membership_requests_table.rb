@@ -7,6 +7,6 @@ class CreateTeamMembershipRequestsTable < ActiveRecord::Migration
       t.timestamps null: false
     end
 
-    add_index :team_membership_requests, [:team_id, :user_id], unique: true
+    add_index :team_membership_requests, [:team_id, :user_id]
   end
 end

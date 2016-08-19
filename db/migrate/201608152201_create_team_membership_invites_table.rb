@@ -8,7 +8,7 @@ class CreateTeamMembershipInvitesTable < ActiveRecord::Migration
       t.timestamps null: false
     end
 
-    add_index :team_membership_invites, [:team_id, :user_id], unique: true
+    add_index :team_membership_invites, [:team_id, :user_id]
 
     execute <<-SQL
       INSERT INTO team_membership_invites(team_id, user_id, inviter_id, created_at, updated_at)
@@ -17,7 +17,6 @@ class CreateTeamMembershipInvitesTable < ActiveRecord::Migration
       WHERE confirmed is FALSE
     SQL
   end
-
 
   def down
     drop_table :team_membership_invites

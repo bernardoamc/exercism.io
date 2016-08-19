@@ -4,8 +4,8 @@ require './lib/exercism/team_membership_request'
 
 class Team < ActiveRecord::Base
   has_many :memberships, -> { where confirmed: true }, class_name: "TeamMembership", dependent: :destroy
-  has_many :membership_invites, class_name: "TeamMembershipInvite", dependent: :destroy
-  has_many :membership_requests, class_name: "TeamMembershipRequest", dependent: :destroy
+  has_many :membership_invites, -> { where refused: false }, class_name: "TeamMembershipInvite", dependent: :destroy
+  has_many :membership_requests, -> { where denied: false }, class_name: "TeamMembershipRequest", dependent: :destroy
   has_many :members, through: :memberships, source: :user
   has_many :member_invites, through: :membership_invites, source: :user
   has_many :member_requests, through: :membership_requests, source: :user
@@ -78,24 +78,44 @@ class Team < ActiveRecord::Base
     users = Array(users) - all_members
 
     users.each do |user|
-      TeamMembershipInvite.create(user: user, team: self, inviter: inviter)
+      TeamMembershipInvite.create(user: user, team: self, inviter: inviter, refused: false)
     end
+  end
+
+  def request(username)
+    user = User.find_by_username(username)
+    return if user.nil? || !membership_requests.exists?(user: user)
+
+    TeamMembershipRequest.create(user: user, team: self, denied: false)
   end
 
   def accept_request(username)
     user = User.find_by_username(username)
-    return if user.nil?
+    return if user.nil? || !membership_requests.exists?(user: user)
 
     membership_requests.where(team: self, user: user).map(&:accept!)
   end
 
+  def deny_request(username)
+    user = User.find_by_username(username)
+    return if user.nil? || !membership_requests.exists?(user: user)
+
+    membership_requests.where(team: self, user: user).map(&:deny!)
+  end
+
   def accept_invite(username)
     user = User.find_by_username(username)
-    return if user.nil?
+    return if user.nil? || !membership_invites.exists?(user: user)
 
     membership_invites.where(team: self, user: user).map(&:accept!)
   end
 
+  def refuse_invite(username)
+    user = User.find_by_username(username)
+    return if user.nil? || !membership_invites.exists?(user: user)
+
+    membership_invites.where(team: self, user: user).map(&:refuse!)
+  end
 
   def dismiss(username)
     user = User.find_by_username(username)

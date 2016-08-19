@@ -17,6 +17,9 @@ module ExercismWeb
         locals = {
           tag: params["q"],
           teams: teams.paginate(page: page, per_page: 10),
+          member_of: current_user.teams.ids + current_user.managed_teams.ids,
+          team_invites: current_user.team_invites.ids,
+          team_requests: current_user.team_requests.ids,
         }
 
         erb :"teams/list", locals: locals
@@ -172,9 +175,43 @@ module ExercismWeb
 
           team.accept_invite(current_user.username)
 
+          flash[:success] = "You are now a member of team #{slug}."
           redirect "/teams/#{slug}"
         end
       end
+
+      # Accept an invitation to join a team.
+      put '/teams/:slug/refuse_invite' do |slug|
+        please_login
+        only_with_existing_team(slug) do |team|
+          unless team.member_invites.include?(current_user)
+            flash[:error] = "You don't have a pending invitation to this team."
+            redirect "/"
+          end
+
+          team.refuse_invite(current_user.username)
+
+          flash[:success] = "Invite from team #{slug} was refused."
+          redirect "/"
+        end
+      end
+
+      # Request membership for a team.
+      put '/teams/:slug/request_membership' do |slug|
+        please_login
+        only_with_existing_team(slug) do |team|
+          if team.member_requests.include?(current_user)
+            flash[:error] = "You already requested membership for this team."
+            redirect "/"
+          end
+
+          team.request(current_user.username)
+
+          flash[:success] = "Membership requested for team #{slug}."
+          redirect "/teams"
+        end
+      end
+
 
       ## Team Management ##
 
@@ -274,6 +311,30 @@ module ExercismWeb
             team.managers.delete(current_user)
             redirect "/account"
           end
+        end
+      end
+
+      # Accept a request to join a team.
+      put '/teams/:slug/accept_request/:username' do |slug, username|
+        please_login
+
+        only_for_team_managers(slug, "You are not allowed to manage this team.") do |team|
+          team.accept_request(username)
+
+          flash[:success] = "#{username} now a member of team #{slug}."
+          redirect "/teams/#{slug}"
+        end
+      end
+
+      # Deny a request to join a team.
+      put '/teams/:slug/deny_request/:username' do |slug, username|
+        please_login
+
+        only_for_team_managers(slug, "You are not allowed to manage this team.") do |team|
+          team.deny_request(username)
+
+          flash[:success] = "Request from #{username} to join team #{slug} was denied."
+          redirect "/teams/#{slug}"
         end
       end
 

@@ -21,16 +21,38 @@
             <span style="padding-right: 15px;" class="fa fa-bell-o alert-icon"></span>
             <% if invite.inviter.present? %>
               <%= gravatar_tag invite.inviter.avatar_url, size: 20 %>
-              <a href="<%= invite.inviter.username %>"><%= invite.inviter.username %></a> would like you to join the team <%= invite.team.name %>.
+              <a href="<%= invite.inviter.username %>"><%= invite.inviter.username %></a> would like you to join team <%= invite.team.name %>.
             <% else %>
               You are invited to join the team <%= invite.team.name %>.
             <% end %>
-            <form action="<%= "/teams/#{invite.team.slug}/leave" %>" method="post" class="inline">
-              <input type="hidden" name="_method" value="put" />
+            <form action="<%= "/teams/#{invite.team.slug}/refuse_invite" %>" method="post" class="inline">
+              <input type="hidden" name="_method" value="put"/>
               <input type="submit" name="update" value="Decline" class="btn btn-xs btn-danger pull-right"/>
             </form>
 
             <form action="<%= "/teams/#{invite.team.slug}/accept_invite" %>" method="post" class="inline">
+              <input type="hidden" name="_method" value="put"/>
+              <input type="submit" name="update" value="Accept" class="btn btn-xs btn-success pull-right" style="margin-right: 5px" />
+            </form>
+          </li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <% if inbox.has_membership_requests_to_review? %>
+        <ul style="list-style-type: none; margin: 0;">
+          <% inbox.membership_requests_to_review.each do |request| %>
+          <li class="alert-row">
+            <span style="padding-right: 15px;" class="fa fa-bell-o alert-icon"></span>
+            <%= gravatar_tag request.user.avatar_url, size: 20 %>
+            <a href="<%= request.user.username %>"><%= request.user.username %></a> wants to join team <%= request.team.name %>.
+
+            <form action="<%= "/teams/#{request.team.slug}/deny_request/#{request.user.username}" %>" method="post" class="inline">
+              <input type="hidden" name="_method" value="put"/>
+              <input type="submit" name="update" value="Decline" class="btn btn-xs btn-danger pull-right"/>
+            </form>
+
+            <form action="<%= "/teams/#{request.team.slug}/accept_request/#{request.user.username}" %>" method="post" class="inline">
               <input type="hidden" name="_method" value="put"/>
               <input type="submit" name="update" value="Accept" class="btn btn-xs btn-success pull-right" style="margin-right: 5px" />
             </form>

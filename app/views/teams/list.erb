@@ -30,7 +30,23 @@
       <% teams.each do |team| %>
         <li class="team-info">
           <div class="row">
-            <a href="/teams/<%= team.slug %>" class="list-group-item">
+            <div class="list-group-item">
+              <% if member_of.include?(team.id) %>
+                <a href="/teams/<%= team.slug %>" class="btn btn-xs btn-primary">Member</a>
+              <% elsif team_invites.include?(team.id) %>
+                <form action="<%= "/teams/#{team.slug}/accept_invite" %>" method="post">
+                  <input type="hidden" name="_method" value="put" />
+                  <input type="submit" name="update" value="Accept invite" class="btn btn-xs btn-success"/>
+                </form>
+              <% elsif team_requests.include?(team.id) %>
+                <span class="btn btn-xs btn-warning">Request pending</span>
+              <% else %>
+                <form action="<%= "/teams/#{team.slug}/request_membership" %>" method="post">
+                  <input type="hidden" name="_method" value="put" />
+                  <input type="submit" name="update" value="Request membership" class="btn btn-xs btn-success"/>
+                </form>
+              <% end %>
+
               <h3><%= h(team.name) %> (<%= team.members.size %> <%= 'member'.pluralize(team.members.size) %>)</h3>
 
               <% if team.description.present? %>
@@ -40,7 +56,7 @@
               <p>
                 Tags: <%= team.all_tags %>
               </p>
-            </a>
+            </div>
           </div>
         </li>
       <% end %>

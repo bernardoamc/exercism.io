@@ -14,8 +14,8 @@ class User < ActiveRecord::Base
   has_many :management_contracts, class_name: "TeamManager"
   has_many :managed_teams, through: :management_contracts, source: :team
   has_many :team_memberships, -> { where confirmed: true }, dependent: :destroy
-  has_many :team_membership_invites, dependent: :destroy
-  has_many :team_membership_requests, dependent: :destroy
+  has_many :team_membership_invites, -> { where refused: false }, dependent: :destroy
+  has_many :team_membership_requests, -> { where denied: false }, dependent: :destroy
   has_many :teams, through: :team_memberships
   has_many :team_invites, through: :team_membership_invites, source: :team
   has_many :team_requests, through: :team_membership_requests, source: :team
